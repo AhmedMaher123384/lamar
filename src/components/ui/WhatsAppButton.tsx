@@ -6,7 +6,7 @@ const WhatsAppButton: React.FC = () => {
   const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
    const location = useLocation();
-  const phoneNumber = '+201069006131';
+  const phoneNumber = '+966564221356';
   const message = t('whatsapp_button.message');
 
 useEffect(() => {
