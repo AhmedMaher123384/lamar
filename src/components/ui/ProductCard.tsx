@@ -146,14 +146,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
     navigate(productPath);
   };
 
-  // ✅ Global 30% discount for display on cards only
-  const GLOBAL_DISCOUNT_PERCENT = 30;
-  const effectiveOriginalPrice = (product.originalPrice && product.originalPrice > 0)
-    ? product.originalPrice
-    : product.price;
-  const effectivePrice = Math.max(0, Number((effectiveOriginalPrice * (1 - GLOBAL_DISCOUNT_PERCENT / 100)).toFixed(2)));
-  const hasDiscount = effectiveOriginalPrice > effectivePrice;
-  const discountPercent = hasDiscount ? GLOBAL_DISCOUNT_PERCENT : 0;
+  // Use final price from product data only (no extra discount applied)
+  const effectivePrice = product.price;
+  const hasDiscount = false;
+  const discountPercent = 0;
 
   // ======================= LIST VIEW =======================
   if (viewMode === 'list') {
@@ -243,12 +239,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                 <div>
-                  {/* Show only discounted price below (no original price, no discount badge) */}
-                  <PriceDisplay
-                    price={effectivePrice}
-                    size="sm"
-                    variant="card"
-                  />
+                  {/* Show final price only */}
+                  <PriceDisplay price={product.price} size="sm" variant="card" />
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -384,12 +376,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode = 'grid' })
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-            {/* Show only discounted price below (no original price, no discount badge) */}
-            <PriceDisplay
-              price={effectivePrice}
-              size="sm"
-              variant="card"
-            />
+            {/* Show final price only */}
+            <PriceDisplay price={product.price} size="sm" variant="card" />
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />

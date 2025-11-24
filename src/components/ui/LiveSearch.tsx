@@ -25,6 +25,7 @@ interface LiveSearchProps {
   onClose?: () => void;
   className?: string;
   triggerVariant?: 'icon' | 'bar';
+  
 }
 
 const LiveSearch: React.FC<LiveSearchProps> = ({ onClose, className = '', triggerVariant = 'icon' }) => {

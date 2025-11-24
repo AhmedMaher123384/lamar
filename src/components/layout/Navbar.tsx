@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { smartToast } from '../../utils/toastConfig';
-import { Menu, X, ShoppingCart, Heart, User, LogOut, Search, Package, Settings, Phone, Mail, MapPin, Clock, ChevronDown, Home, Grid3X3, Star, Award, Truck, Shield, Sparkles, Bell, ChevronLeft, BookOpen, Crown } from 'lucide-react';
+import { Menu, X, ShoppingCart, Heart, User, LogOut, ChevronDown, Package, Home, Grid3X3 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import AuthModal from '../modals/AuthModal';
 import CartDropdown from '../ui/CartDropdown';
@@ -51,10 +51,10 @@ function Navbar() {
   const [isCartHovered, setIsCartHovered] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const cartDropdownRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null); // ⭐ لحساب مركز الزر
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Function to get first letter of each name for mobile display
   const getInitials = (name: string): string => {
     if (!name) return '';
     return name
@@ -69,120 +69,65 @@ function Navbar() {
   useEffect(() => {
     const controlNavbar = () => {
       const currentScrollY = window.scrollY;
-
       if (currentScrollY < 10) {
-        // At top of page - show navbar, hide floating logo
         setScrolled(false);
         setShowNavbar(true);
       } else {
-        // Scrolled down - mark as scrolled
         setScrolled(true);
-        
         if (isLogoHovered) {
-          // Logo is hovered - show navbar
           setShowNavbar(true);
         } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          // Scrolling down - hide navbar
           setShowNavbar(false);
         } else if (currentScrollY < lastScrollY) {
-          // Scrolling up - show navbar
           setShowNavbar(true);
         }
       }
-
       setLastScrollY(currentScrollY);
     };
-
     const throttledControlNavbar = throttle(controlNavbar, 10);
     window.addEventListener('scroll', throttledControlNavbar);
-
     return () => window.removeEventListener('scroll', throttledControlNavbar);
   }, [lastScrollY, isLogoHovered]);
 
-  // Handle logo hover to show navbar
   useEffect(() => {
-    if (isLogoHovered && scrolled) {
-      setShowNavbar(true);
-    }
+    if (isLogoHovered && scrolled) setShowNavbar(true);
   }, [isLogoHovered, scrolled]);
 
-  // Handle window resize to update mobile state
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Close user menu and cart dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
       }
-      // تحسين منطق إغلاق البوب أب - لا نغلقه إذا كان المستخدم يحوم عليه
       if (cartDropdownRef.current && !cartDropdownRef.current.contains(event.target as Node)) {
-        // تأخير الإغلاق للسماح بالانتقال بين العناصر
         setTimeout(() => {
-          if (!isCartHovered) {
-            setIsCartDropdownOpen(false);
-          }
+          if (!isCartHovered) setIsCartDropdownOpen(false);
         }, 400);
       }
     };
-
     if (isUserMenuOpen || isCartDropdownOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isUserMenuOpen, isCartDropdownOpen, isCartHovered]);
 
-  // Close mobile menu when clicking outside or on overlay
+  // 👇 تمت إزالة useEffect الخاص بـ overlay + body overflow (لأننا نستخدم circular reveal بدون overlay داكن)
+
   useEffect(() => {
-    const handleMobileMenuClose = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      // Check if click is on the overlay (not on the menu panel)
-      if (isMenuOpen && target.classList.contains('mobile-menu-overlay')) {
-        setIsMenuOpen(false);
-      }
-    };
-
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleMobileMenuClose);
-      // Prevent body scroll when menu is open
-      document.body.style.overflow = 'hidden';
-    } else {
-      // Restore body scroll when menu is closed
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleMobileMenuClose);
-      document.body.style.overflow = 'unset';
-    };
+    if (isMenuOpen) setShowNavbar(false);
+    else setShowNavbar(true);
   }, [isMenuOpen]);
 
-  // Hide navbar when mobile menu is open
-  useEffect(() => {
-    if (isMenuOpen) {
-      setShowNavbar(false);
-    } else {
-      setShowNavbar(true);
-    }
-  }, [isMenuOpen]);
-
-  // Throttle function for better performance
   const throttle = (func: (...args: any[]) => void, delay: number) => {
     let timeoutId: number | null = null;
     let lastExecTime = 0;
     return (...args: any[]) => {
       const currentTime = Date.now();
-
       if (currentTime - lastExecTime > delay) {
         func(...args);
         lastExecTime = currentTime;
@@ -201,7 +146,6 @@ function Navbar() {
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
-        console.log('👤 User loaded from localStorage:', userData);
         setUser(userData);
       } catch (error) {
         console.error('Error parsing saved user:', error);
@@ -215,13 +159,8 @@ function Navbar() {
     fetchWishlistCount();
     fetchCategories();
 
-    const handleCartUpdate = () => {
-      console.log('🔄 [Navbar] Cart update event received');
-      fetchCartCount();
-    };
-
+    const handleCartUpdate = () => fetchCartCount();
     const handleCartCountChange = () => {
-      console.log('🔄 [Navbar] Cart count change event received');
       const localCart = localStorage.getItem('cart');
       if (localCart) {
         try {
@@ -229,129 +168,54 @@ function Navbar() {
           if (Array.isArray(cartItems)) {
             const totalItems = cartItems.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
             setCartItemsCount(totalItems);
-            console.log('📊 [Navbar] Cart count updated instantly:', totalItems);
             const userData = localStorage.getItem('user');
-            if (userData) {
-              console.log('👤 [Navbar] Logged in user - syncing with server in background');
-              setTimeout(() => fetchCartCount(), 100);
-            }
+            if (userData) setTimeout(() => fetchCartCount(), 100);
             return;
           }
-        } catch (parseError) {
-          console.error('❌ [Navbar] Error parsing local cart:', parseError);
-        }
+        } catch { /* ignore */ }
       }
       const userData = localStorage.getItem('user');
-      if (userData) {
-        console.log('👤 [Navbar] No local cart - fetching from server');
-        fetchCartCount();
-      } else {
-        setCartItemsCount(0);
-      }
+      if (userData) fetchCartCount();
+      else setCartItemsCount(0);
     };
-
-    const handleWishlistUpdate = () => {
-      console.log('🔄 [Navbar] Wishlist update event received');
-      fetchWishlistCount();
-    };
-
+    const handleWishlistUpdate = () => fetchWishlistCount();
     const handleCategoriesUpdate = () => fetchCategories();
 
-    const cartEvents = [
-      'cartUpdated',
-      'productAddedToCart',
-      'forceCartUpdate'
-    ];
+    const cartEvents = ['cartUpdated', 'productAddedToCart', 'forceCartUpdate'];
+    const cartCountEvents = ['cartCountChanged'];
+    const wishlistEvents = ['wishlistUpdated', 'productAddedToWishlist', 'productRemovedFromWishlist', 'wishlistCleared'];
 
-    const cartCountEvents = [
-      'cartCountChanged'
-    ];
-
-    const wishlistEvents = [
-      'wishlistUpdated',
-      'productAddedToWishlist',
-      'productRemovedFromWishlist',
-      'wishlistCleared'
-    ];
-
-    cartEvents.forEach(event => {
-      window.addEventListener(event, handleCartUpdate);
-    });
-
-    cartCountEvents.forEach(event => {
-      window.addEventListener(event, handleCartCountChange);
-    });
-
-    wishlistEvents.forEach(event => {
-      window.addEventListener(event, handleWishlistUpdate);
-    });
-
+    cartEvents.forEach(event => window.addEventListener(event, handleCartUpdate));
+    cartCountEvents.forEach(event => window.addEventListener(event, handleCartCountChange));
+    wishlistEvents.forEach(event => window.addEventListener(event, handleWishlistUpdate));
     window.addEventListener('categoriesUpdated', handleCategoriesUpdate);
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'cartUpdated' || e.key === 'lastCartUpdate' || e.key === 'forceCartRefresh') {
-        console.log('🔄 [Navbar] Storage cart update detected');
-        handleCartUpdate();
-      }
-      if (e.key === 'wishlistUpdated' || e.key === 'lastWishlistUpdate') {
-        console.log('🔄 [Navbar] Storage wishlist update detected');
-        handleWishlistUpdate();
-      }
+      if (e.key === 'cartUpdated' || e.key === 'lastCartUpdate' || e.key === 'forceCartRefresh') handleCartUpdate();
+      if (e.key === 'wishlistUpdated' || e.key === 'lastWishlistUpdate') handleWishlistUpdate();
     };
-
     window.addEventListener('storage', handleStorageChange);
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user?.id) {
       const savedCartCount = localStorage.getItem(`cartCount_${user.id}`);
       const savedWishlistCount = localStorage.getItem(`wishlistCount_${user.id}`);
-
-      if (savedCartCount) {
-        setCartItemsCount(parseInt(savedCartCount));
-      }
-      if (savedWishlistCount) {
-        setWishlistItemsCount(parseInt(savedWishlistCount));
-      }
+      if (savedCartCount) setCartItemsCount(parseInt(savedCartCount));
+      if (savedWishlistCount) setWishlistItemsCount(parseInt(savedWishlistCount));
     } else {
-      console.log('👤 [Navbar] Loading wishlist for guest user');
       const savedWishlist = localStorage.getItem('wishlist');
-      console.log('💾 [Navbar] Guest wishlist from localStorage:', savedWishlist);
-
       if (savedWishlist) {
         try {
           const parsedWishlist = JSON.parse(savedWishlist);
-          console.log('📦 [Navbar] Parsed guest wishlist:', parsedWishlist);
-
-          if (Array.isArray(parsedWishlist)) {
-            console.log('✅ [Navbar] Setting guest wishlist count:', parsedWishlist.length);
-            setWishlistItemsCount(parsedWishlist.length);
-          } else {
-            console.log('❌ [Navbar] Guest wishlist is not an array');
-            setWishlistItemsCount(0);
-          }
-        } catch (error) {
-          console.error('❌ [Navbar] Error parsing guest wishlist:', error);
-          setWishlistItemsCount(0);
-        }
-      } else {
-        console.log('📭 [Navbar] No guest wishlist found, setting count to 0');
-        setWishlistItemsCount(0);
-      }
+          setWishlistItemsCount(Array.isArray(parsedWishlist) ? parsedWishlist.length : 0);
+        } catch { setWishlistItemsCount(0); }
+      } else setWishlistItemsCount(0);
     }
 
     return () => {
-      cartEvents.forEach(event => {
-        window.removeEventListener(event, handleCartUpdate);
-      });
-
-      cartCountEvents.forEach(event => {
-        window.removeEventListener(event, handleCartCountChange);
-      });
-
-      wishlistEvents.forEach(event => {
-        window.removeEventListener(event, handleWishlistUpdate);
-      });
-
+      cartEvents.forEach(event => window.removeEventListener(event, handleCartUpdate));
+      cartCountEvents.forEach(event => window.removeEventListener(event, handleCartCountChange));
+      wishlistEvents.forEach(event => window.removeEventListener(event, handleWishlistUpdate));
       window.removeEventListener('categoriesUpdated', handleCategoriesUpdate);
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -360,7 +224,6 @@ function Navbar() {
   const fetchCartCount = async () => {
     try {
       const userData = localStorage.getItem('user');
-
       if (!userData) {
         const localCart = localStorage.getItem('cart');
         if (localCart) {
@@ -370,22 +233,17 @@ function Navbar() {
               const totalItems = cartItems.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
               setCartItemsCount(totalItems);
               localStorage.setItem('lastCartCount', totalItems.toString());
-              console.log('📊 [Navbar] Cart count from localStorage:', totalItems);
               return;
             }
-          } catch (parseError) {
-            console.error('❌ [Navbar] Error parsing local cart:', parseError);
-          }
+          } catch { /* ignore */ }
         }
         setCartItemsCount(0);
         localStorage.setItem('lastCartCount', '0');
-        console.log('📊 [Navbar] No user and no local cart, setting count to 0');
         return;
       }
 
       const user = JSON.parse(userData);
       if (!user?.id) {
-        console.warn('⚠️ [Navbar] Invalid user data, falling back to localStorage');
         const localCart = localStorage.getItem('cart');
         if (localCart) {
           try {
@@ -393,73 +251,28 @@ function Navbar() {
             if (Array.isArray(cartItems)) {
               const totalItems = cartItems.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
               setCartItemsCount(totalItems);
-              localStorage.setItem('lastCartCount', totalItems.toString());
               return;
             }
-          } catch (parseError) {
-            console.error('❌ [Navbar] Error parsing local cart fallback:', parseError);
-          }
+          } catch { /* ignore */ }
         }
         setCartItemsCount(0);
-        localStorage.setItem('lastCartCount', '0');
         return;
       }
 
-      console.log('🔄 [Navbar] Fetching cart count for user:', user.id);
-
-      try {
-        const data = await apiCall(API_ENDPOINTS.USER_CART(user.id));
-        console.log('📦 [Navbar] Raw cart data:', data);
-
-        let totalItems = 0;
-        if (Array.isArray(data)) {
-          totalItems = data.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
-        } else if (data && typeof data === 'object' && Array.isArray(data.cart)) {
-          totalItems = data.cart.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
-        } else if (data && typeof data === 'object' && typeof data.totalItems === 'number') {
-          totalItems = data.totalItems;
-        }
-
-        console.log('📊 [Navbar] Cart count calculated from server:', totalItems);
-        setCartItemsCount(totalItems);
-
-        localStorage.setItem('lastCartCount', totalItems.toString());
-        localStorage.setItem(`cartCount_${user.id}`, totalItems.toString());
-
-        console.log('💾 [Navbar] Cart count saved to localStorage:', totalItems);
-      } catch (apiError) {
-        console.error('❌ [Navbar] API error, falling back to localStorage:', apiError);
-
-        const localCart = localStorage.getItem('cart');
-        if (localCart) {
-          try {
-            const cartItems = JSON.parse(localCart);
-            if (Array.isArray(cartItems)) {
-              const totalItems = cartItems.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
-              setCartItemsCount(totalItems);
-              localStorage.setItem('lastCartCount', totalItems.toString());
-              console.log('📊 [Navbar] Cart count from localStorage fallback:', totalItems);
-              return;
-            }
-          } catch (parseError) {
-            console.error('❌ [Navbar] Error parsing local cart in API fallback:', parseError);
-          }
-        }
-
-        const lastCount = localStorage.getItem('lastCartCount');
-        if (lastCount) {
-          const count = parseInt(lastCount, 10) || 0;
-          setCartItemsCount(count);
-          console.log('📊 [Navbar] Using last saved cart count:', count);
-        } else {
-          setCartItemsCount(0);
-          localStorage.setItem('lastCartCount', '0');
-          console.log('📊 [Navbar] No fallback available, setting count to 0');
-        }
+      const data = await apiCall(API_ENDPOINTS.USER_CART(user.id));
+      let totalItems = 0;
+      if (Array.isArray(data)) {
+        totalItems = data.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+      } else if (data && typeof data === 'object' && Array.isArray(data.cart)) {
+        totalItems = data.cart.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+      } else if (data && typeof data === 'object' && typeof data.totalItems === 'number') {
+        totalItems = data.totalItems;
       }
+      setCartItemsCount(totalItems);
+      localStorage.setItem('lastCartCount', totalItems.toString());
+      localStorage.setItem(`cartCount_${user.id}`, totalItems.toString());
     } catch (error) {
-      console.error('❌ [Navbar] Error fetching cart count:', error);
-
+      console.error('Error fetching cart count:', error);
       const localCart = localStorage.getItem('cart');
       if (localCart) {
         try {
@@ -469,11 +282,8 @@ function Navbar() {
             setCartItemsCount(totalItems);
             return;
           }
-        } catch (parseError) {
-          console.error('❌ [Navbar] Error parsing local cart fallback:', parseError);
-        }
+        } catch { /* ignore */ }
       }
-
       setCartItemsCount(0);
       localStorage.setItem('lastCartCount', '0');
     }
@@ -481,52 +291,25 @@ function Navbar() {
 
   const fetchWishlistCount = async () => {
     try {
-      console.log('🔄 [Navbar] fetchWishlistCount called');
-
       const savedWishlist = localStorage.getItem('wishlist');
-      console.log('💾 [Navbar] Raw wishlist from localStorage:', savedWishlist);
-
       let wishlistCount = 0;
-
       if (savedWishlist) {
         try {
           const parsedWishlist = JSON.parse(savedWishlist);
-          console.log('📦 [Navbar] Parsed wishlist:', parsedWishlist);
-
-          if (Array.isArray(parsedWishlist)) {
-            wishlistCount = parsedWishlist.length;
-            console.log('✅ [Navbar] Calculated wishlist count:', wishlistCount);
-          } else {
-            console.log('❌ [Navbar] Wishlist is not an array');
-            wishlistCount = 0;
-          }
-        } catch (parseError) {
-          console.error('❌ [Navbar] Error parsing wishlist from localStorage:', parseError);
-          wishlistCount = 0;
-        }
-      } else {
-        console.log('📭 [Navbar] No wishlist found in localStorage');
+          wishlistCount = Array.isArray(parsedWishlist) ? parsedWishlist.length : 0;
+        } catch { /* ignore */ }
       }
-
-      console.log('📊 [Navbar] Final wishlist count:', wishlistCount);
       setWishlistItemsCount(wishlistCount);
       localStorage.setItem('lastWishlistCount', wishlistCount.toString());
-
       const userData = localStorage.getItem('user');
       if (userData) {
         try {
           const user = JSON.parse(userData);
-          if (user?.id) {
-            localStorage.setItem(`wishlistCount_${user.id}`, wishlistCount.toString());
-          }
-        } catch (error) {
-          console.error('❌ [Navbar] Error parsing user data:', error);
-        }
+          if (user?.id) localStorage.setItem(`wishlistCount_${user.id}`, wishlistCount.toString());
+        } catch { /* ignore */ }
       }
-
-      console.log('💾 [Navbar] Wishlist count saved to localStorage:', wishlistCount);
     } catch (error) {
-      console.error('❌ [Navbar] Error fetching wishlist count:', error);
+      console.error('Error fetching wishlist count:', error);
       setWishlistItemsCount(0);
       localStorage.setItem('lastWishlistCount', '0');
     }
@@ -549,60 +332,6 @@ function Navbar() {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
     setIsAuthModalOpen(false);
-
-    const mergeLocalCartWithUserCart = async () => {
-      try {
-        const localCart = localStorage.getItem('cart');
-        if (localCart) {
-          const localItems = JSON.parse(localCart);
-          if (localItems.length > 0) {
-            console.log('🔄 [Navbar] Merging local cart with user cart:', localItems.length, 'items');
-
-            for (const item of localItems) {
-              try {
-                await apiCall(API_ENDPOINTS.USER_CART(userData.id), {
-                  method: 'POST',
-                  body: JSON.stringify({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    selectedOptions: item.selectedOptions || {},
-                    optionsPricing: item.optionsPricing || {},
-                    attachments: item.attachments || {},
-                    productName: item.product?.name || 'منتج',
-                    price: item.product?.price || 0,
-                    image: item.product?.mainImage || ''
-                  })
-                });
-                console.log('✅ [Navbar] Merged item:', item.productId);
-              } catch (error) {
-                console.error('❌ [Navbar] Error merging item:', item.productId, error);
-              }
-            }
-
-            try {
-              const serverCart = await apiCall(API_ENDPOINTS.USER_CART(userData.id));
-              localStorage.setItem('cart', JSON.stringify(serverCart));
-              console.log('✅ [Navbar] Cart merged successfully, new cart size:', serverCart.length);
-
-              window.dispatchEvent(new CustomEvent('cartUpdated'));
-
-              smartToast.frontend.success('تم دمج سلة التسوق بنجاح! 🛒');
-            } catch (error) {
-              console.error('❌ [Navbar] Error fetching merged cart:', error);
-            }
-          } else {
-            console.log('📭 [Navbar] Local cart is empty, no merge needed');
-          }
-        } else {
-          console.log('📭 [Navbar] No local cart found');
-        }
-      } catch (error) {
-        console.error('❌ [Navbar] Error in cart merge:', error);
-      }
-    };
-
-    mergeLocalCartWithUserCart();
-
     smartToast.frontend.success(`مرحباً بك ${userData.firstName}! 🎉`);
   };
 
@@ -610,16 +339,13 @@ function Navbar() {
     const currentUser = user;
     setUser(null);
     localStorage.removeItem('user');
-
     if (currentUser?.id) {
       localStorage.removeItem(`cartCount_${currentUser.id}`);
       localStorage.removeItem(`wishlistCount_${currentUser.id}`);
     }
-
     setIsUserMenuOpen(false);
     setCartItemsCount(0);
     setWishlistItemsCount(0);
-
     navigate('/');
     smartToast.frontend.success('تم تسجيل الخروج بنجاح');
   };
@@ -629,24 +355,41 @@ function Navbar() {
     setIsMenuOpen(false);
   };
 
+  // 🧱 Circular Reveal: حساب موقع الزر لمركز التوسع
+  const [circlePosition, setCirclePosition] = useState({ x: 0, y: 0, radius: 0 });
+
+  const openMenuWithCircularReveal = () => {
+    if (menuButtonRef.current) {
+      const buttonRect = menuButtonRef.current.getBoundingClientRect();
+      const x = buttonRect.left + buttonRect.width / 2;
+      const y = buttonRect.top + buttonRect.height / 2;
+      const radius = Math.max(
+        window.innerWidth,
+        window.innerHeight
+      ) * 1.2; // دائرة كبيرة كفاية لتغطي الشاشة
+
+      setCirclePosition({ x, y, radius });
+      setTimeout(() => setIsMenuOpen(true), 10);
+    } else {
+      setIsMenuOpen(true); // fallback
+    }
+  };
+
   return (
     <>
       {/* Main Navbar */}
-      <nav 
+      <nav
         className={`sticky top-0 w-full z-50 transition-transform duration-300 ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        {/* Navbar Container with Rounded Corners */}
         <div className="px-0">
-          <div 
-            className={"relative w-full transition-all duration-300 ease-out bg-[#592a26] text-white border-b border-[#592a26] shadow-md"}
-          >
+          <div className="relative w-full transition-all duration-300 ease-out bg-[#592a26] text-white border-b border-[#592a26] shadow-md">
             <div className="flex lg:grid lg:grid-cols-3 items-center justify-between h-16 sm:h-20 lg:h-24 px-4 sm:px-6">
-              
               {/* Mobile Menu Button & Cart */}
               <div className="lg:hidden flex items-center space-x-3">
                 <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  ref={menuButtonRef}
+                  onClick={openMenuWithCircularReveal}
                   className="text-white p-2 sm:p-2.5 rounded-xl hover:bg-white/10 transition-all duration-300 backdrop-blur-sm touch-manipulation relative overflow-hidden group"
                   aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
                 >
@@ -655,8 +398,6 @@ function Navbar() {
                   </div>
                   <div className="absolute inset-0 bg-white/5 scale-0 group-active:scale-100 transition-transform duration-150 rounded-xl"></div>
                 </button>
-
-                {/* Mobile Cart Button */}
                 <div className="relative">
                   <button
                     onClick={() => setIsCartDropdownOpen(!isCartDropdownOpen)}
@@ -665,14 +406,12 @@ function Navbar() {
                   >
                     <ShoppingCart size={22} className="sm:w-[24px] sm:h-[24px]" />
                     {cartItemsCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-[#18b5d5] text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-medium shadow-[0_0_8px_rgba(255,255,255,0.3)] animate-pulse">
+                      <span className="absolute -top-1 -right-1 bg-white text-[#592a26] border border-[#592a26]/30 rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[11px] font-semibold shadow-sm">
                         {cartItemsCount}
                       </span>
                     )}
                     <div className="absolute inset-0 bg-white/5 scale-0 group-active:scale-100 transition-transform duration-150 rounded-xl"></div>
                   </button>
-                  
-                  {/* Mobile Cart Dropdown */}
                   {isCartDropdownOpen && (
                     <div className="absolute top-full right-0 mt-2 z-50">
                       <CartDropdown
@@ -685,7 +424,7 @@ function Navbar() {
                 </div>
               </div>
 
-              {/* Logo + Contact Us (desktop) */}
+              {/* Logo */}
               <div className="flex items-center gap-3 lg:col-start-1 lg:justify-self-start">
                 <Link to="/" onClick={() => setIsMenuOpen(false)} className="cursor-pointer">
                   <img src={logo} alt="Logo" className="h-12 sm:h-16 lg:h-20 w-auto" />
@@ -699,118 +438,101 @@ function Navbar() {
                 </div>
               </div>
 
-              {/* Desktop Navigation Links removed per request */}
-
               {/* Action Buttons (right) */}
               <div className="hidden lg:flex items-center space-x-2 lg:col-start-3 lg:justify-self-end">
-                
-                {/* Language & Currency Selector (shrunk) */}
                 <div className="transform scale-75 sm:scale-90 origin-right">
                   <LanguageCurrencySelector />
                 </div>
 
-      {/* Cart Button with Dropdown */}
-      <div className="relative" ref={cartDropdownRef}>
-        <button 
-          onClick={() => setIsCartDropdownOpen(!isCartDropdownOpen)}
-          className="relative text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-all duration-300 group"
-        >
-          <ShoppingCart size={20} />
-          {cartItemsCount > 0 && (
-            <span 
-              className="absolute -top-1 -right-1 bg-[#18b5d5] text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-medium shadow-[0_0_8px_rgba(255,255,255,0.3)] animate-pulse"
-              style={{ 
-                backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(24,181,213,1))',
-                animationDuration: '2s' // جعل الـ pulse أبطأ لتأثير أنيق
-              }}
-            >
-              {cartItemsCount}
-            </span>
-          )}
-          <div className="absolute inset-0 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        </button>
-        
-        <div className="absolute top-full left-0 mt-2 z-50 translate-x-4">
-          <CartDropdown 
-            isOpen={isCartDropdownOpen} 
-            onClose={() => setIsCartDropdownOpen(false)}
-            onHoverChange={setIsCartHovered}
-          />
-        </div>
-      </div>
+                {/* Cart Button */}
+                <div className="relative" ref={cartDropdownRef}>
+                  <button
+                    onClick={() => setIsCartDropdownOpen(!isCartDropdownOpen)}
+                    className="relative text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-all duration-300 group"
+                  >
+                    <ShoppingCart size={20} />
+                    {cartItemsCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-white text-[#592a26] border border-[#592a26]/30 rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[11px] font-semibold shadow-sm">
+                        {cartItemsCount}
+                      </span>
+                    )}
+                    <div className="absolute inset-0 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </button>
+                  <div className="absolute top-full left-0 mt-2 z-50 translate-x-4">
+                    <CartDropdown
+                      isOpen={isCartDropdownOpen}
+                      onClose={() => setIsCartDropdownOpen(false)}
+                      onHoverChange={setIsCartHovered}
+                    />
+                  </div>
+                </div>
 
-      {/* Wishlist Button */}
-      <Link to="/wishlist" className="relative text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-all duration-300 group">
-        <Heart size={20} />
-        {wishlistItemsCount > 0 && (
-          <span 
-            className="absolute -top-1 -right-1 bg-[#18b5d5] text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-medium shadow-[0_0_8px_rgba(255,255,255,0.3)] animate-pulse"
-            style={{ 
-              backgroundImage: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(24,181,213,1))',
-              animationDuration: '2s' // جعل الـ pulse أبطأ لتأثير أنيق
-            }}
-          >
-            {wishlistItemsCount}
-          </span>
-        )}
-        <div className="absolute inset-0 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      </Link>
+                {/* Wishlist */}
+                <Link to="/wishlist" className="relative text-white/80 hover:text-white p-2 rounded-xl hover:bg-white/10 transition-all duration-300 group">
+                  <Heart size={20} />
+                  {wishlistItemsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-white text-[#592a26] border border-[#592a26]/30 rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-[11px] font-semibold shadow-sm">
+                      {wishlistItemsCount}
+                    </span>
+                  )}
+                  <div className="absolute inset-0 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </Link>
 
                 {/* User Menu */}
-      {user ? (
-  <div className="relative" ref={userMenuRef}>
-    <button 
-      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
-      className="flex items-center text-white/90 hover:text-white px-2 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl hover:bg-white/10 transition-all duration-300 gap-2 md:gap-3 group"
-    >
-      <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-[#18b5d8] to-[#0891b2] rounded-md md:rounded-lg flex items-center justify-center">
-        <User size={14} className="md:w-4 md:h-4" />
-      </div>
-      <span className="text-xs md:text-sm font-medium hidden md:inline">{user.name?.split(' ')[0] || user.firstName || t('nav.profile')}</span>
-                <span className="text-xs md:text-sm font-medium md:hidden">{getInitials(user.name || user.firstName || t('nav.profile'))}</span>
-      <ChevronDown size={14} className={`md:w-4 md:h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
-    </button>
-    
-    {isUserMenuOpen && (
-      <div className="absolute left-0 md:right-0 mt-2 w-36 md:w-56 max-w-[calc(100vw-0.5rem)] bg-white/10 backdrop-blur-2xl rounded-lg md:rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-in slide-in-from-top-2 duration-300 z-[70]">
-        <div className="p-1 md:p-2 space-y-0.5 md:space-y-2">
-          <Link
-            to="/profile"
-            onClick={() => setIsUserMenuOpen(false)}
-            className="flex items-center px-2 md:px-4 py-1.5 md:py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-md md:rounded-xl transition-all duration-200 gap-1.5 md:gap-3"
-          >
-            <User size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
-            <span className="text-xs md:text-base truncate">{t('nav.profile')}</span>
-          </Link>
-          
-          <div className="border-t border-white/10 my-0.5 md:my-2"></div>
-          <button 
-            onClick={handleLogout} 
-            className="flex items-center w-full px-2 md:px-4 py-1.5 md:py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md md:rounded-xl transition-all duration-200 gap-1.5 md:gap-3"
-          >
-            <LogOut size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
-            <span className="text-xs md:text-base truncate">{t('nav.logout')}</span>
-          </button>
-        </div>
-      </div>
-    )}
-  </div>
-) : (
-  <button 
-    onClick={openAuthModal} 
-    aria-label={t('nav.login')}
-    className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full text-white hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/40"
-  >
-    <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
-  </button>
+                {user ? (
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center text-white/90 hover:text-white px-2 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl hover:bg-white/10 transition-all duration-300 gap-2 md:gap-3 group"
+                    >
+                      <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-[#18b5d8] to-[#0891b2] rounded-md md:rounded-lg flex items-center justify-center">
+                        <User size={14} className="md:w-4 md:h-4" />
+                      </div>
+                      <span className="text-xs md:text-sm font-medium hidden md:inline">{user.name?.split(' ')[0] || user.firstName || t('nav.profile')}</span>
+                      <span className="text-xs md:text-sm font-medium md:hidden">{getInitials(user.name || user.firstName || t('nav.profile'))}</span>
+                      <ChevronDown size={14} className={`md:w-4 md:h-4 transition-transform duration-300 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {isUserMenuOpen && (
+                      <div className="absolute left-0 md:right-0 mt-2 w-36 md:w-56 max-w-[calc(100vw-0.5rem)] bg-white/10 backdrop-blur-2xl rounded-lg md:rounded-2xl shadow-2xl border border-white/20 overflow-hidden animate-in slide-in-from-top-2 duration-300 z-[70]">
+                        <div className="p-1 md:p-2 space-y-0.5 md:space-y-2">
+                          <Link
+                            to="/profile"
+                            onClick={() => setIsUserMenuOpen(false)}
+                            className="flex items-center px-2 md:px-4 py-1.5 md:py-3 text-white/90 hover:text-white hover:bg-white/10 rounded-md md:rounded-xl transition-all duration-200 gap-1.5 md:gap-3"
+                          >
+                            <User size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+                            <span className="text-xs md:text-base truncate">{t('nav.profile')}</span>
+                          </Link>
+                          <div className="border-t border-white/10 my-0.5 md:my-2"></div>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center w-full px-2 md:px-4 py-1.5 md:py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-md md:rounded-xl transition-all duration-200 gap-1.5 md:gap-3"
+                          >
+                            <LogOut size={14} className="md:w-[18px] md:h-[18px] flex-shrink-0" />
+                            <span className="text-xs md:text-base truncate">{t('nav.logout')}</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={openAuthModal}
+                    aria-label={t('nav.login')}
+                    className="flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full text-white hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  >
+                    <User className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  </button>
                 )}
               </div>
             </div>
-            {/* Inline Category & Collection Bar - full-bleed under main navbar */}
-            <div className="block w-full">
+
+            {/* Category Bar */}
+            <div className="hidden md:block w-full">
               <CategoryCollectionBar variant="navbar" />
             </div>
-            {/* Discount Bar between navbar collections and hero section */}
+
+            {/* Discount Bar */}
             <div className="w-full bg-[#592a26] text-white text-center py-1 text-sm font-semibold tracking-wide">
               خصومات ٣٠ ٪ بمناسبة  العيد الوطني ال 95
             </div>
@@ -818,443 +540,136 @@ function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Menu Overlay */}
-      <div 
-        className={`lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] transition-opacity duration-300 mobile-menu-overlay ${
-          isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            setIsMenuOpen(false);
-          }
-        }}
-      >
-        {/* Mobile Menu Panel - Professional Glassmorphism */}
-        <div 
-          className={`fixed right-0 top-0 h-full w-full max-w-sm transform transition-all duration-700 ease-out flex flex-col ${
-            isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%)',
-            backdropFilter: 'blur(40px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-            borderLeft: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: `
-              -20px 0 60px rgba(0,0,0,0.3),
-              inset 1px 0 1px rgba(255,255,255,0.1),
-              inset 0 1px 1px rgba(255,255,255,0.05)
-            `,
-            maxHeight: '100vh',
-            overflowY: 'hidden'
-          }}
+      {/* 🧱 CIRCULAR REVEAL MOBILE MENU */}
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 z-[60] pointer-events-none"
+          onClick={() => setIsMenuOpen(false)}
         >
-          {/* Animated Background Orbs */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div 
-              className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-20 animate-pulse"
-              style={{
-                background: 'radial-gradient(circle, rgba(24,181,216,0.3) 0%, transparent 70%)',
-                animationDuration: '4s'
-              }}
-            ></div>
-            <div 
-              className="absolute top-1/3 -right-10 w-24 h-24 rounded-full opacity-15 animate-pulse"
-              style={{
-                background: 'radial-gradient(circle, rgba(8,145,178,0.4) 0%, transparent 70%)',
-                animationDuration: '6s',
-                animationDelay: '2s'
-              }}
-            ></div>
-            <div 
-              className="absolute bottom-1/4 -right-16 w-32 h-32 rounded-full opacity-10 animate-pulse"
-              style={{
-                background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
-                animationDuration: '8s',
-                animationDelay: '1s'
-              }}
-            ></div>
-          </div>
-
-          {/* Header Section - Enhanced Glassmorphism */}
-          <div 
-            className="relative flex justify-between items-center p-6 border-b border-white/15"
+          {/* Circular mask */}
+          <div
+            className="absolute inset-0 bg-white pointer-events-auto transition-all duration-500 ease-out"
             style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)'
+              clipPath: `circle(${circlePosition.radius}px at ${circlePosition.x}px ${circlePosition.y}px)`,
             }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <Link to="/" onClick={() => setIsMenuOpen(false)} className="transition-all duration-300 hover:scale-105 hover:drop-shadow-lg">
-              <img src={logo} alt="Logo" className="h-12 w-auto filter drop-shadow-sm" />
-            </Link>
-            <button 
-              onClick={() => setIsMenuOpen(false)} 
-              className="relative text-white p-3 rounded-2xl transition-all duration-300 group overflow-hidden"
-              aria-label="إغلاق القائمة"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.1)'
-              }}
-            >
-              <div className="relative z-10 transition-transform duration-300 group-hover:rotate-90">
-                <X size={24} />
-              </div>
-              <div 
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(239,68,68,0.2) 0%, rgba(220,38,38,0.1) 100%)'
-                }}
-              ></div>
-            </button>
-          </div>
-
-          {/* Content Container */}
-          <div className="flex flex-col flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-            {/* User Section - Enhanced Glassmorphism */}
-            {user ? (
-              <div 
-                className="relative p-6 border-b border-white/15"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)'
-                }}
-              >
-                {/* User Info Card */}
-                <div 
-                  className="relative flex items-center p-5 text-white rounded-2xl mb-6 overflow-hidden group"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                    backdropFilter: 'blur(25px)',
-                    WebkitBackdropFilter: 'blur(25px)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.1), 0 8px 32px rgba(0,0,0,0.1)'
-                  }}
+            {/* Panel content */}
+            <div className="h-full flex flex-col">
+              {/* 🔷 Header: لون #592a26 خلفية + لوجو أبيض */}
+              <div className="bg-[#592a26] px-4 py-3 flex items-center justify-between">
+                <Link
+                  to="/"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex items-center"
                 >
-                  {/* Animated Background */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(24,181,216,0.1) 0%, rgba(8,145,178,0.05) 100%)'
-                    }}
-                  ></div>
-                  
-                  {/* Avatar */}
-                  <div 
-                    className="relative w-14 h-14 rounded-2xl flex items-center justify-center mr-4 overflow-hidden"
-                    style={{
-                      background: 'linear-gradient(135deg, #18b5d8 0%, #0891b2 100%)',
-                      boxShadow: '0 8px 32px rgba(24,181,216,0.3), inset 0 1px 1px rgba(255,255,255,0.2)'
-                    }}
-                  >
-                    <span className="text-white font-bold text-xl relative z-10">
-                      {getInitials(user.name || user.firstName || t('nav.profile'))}
-                    </span>
-                    <div 
-                      className="absolute inset-0 opacity-50"
-                      style={{
-                        background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%)'
-                      }}
-                    ></div>
-                  </div>
-                  
-                  {/* User Details */}
-                  <div className="flex-1 relative z-10">
-                    <div className="text-lg font-bold text-white mb-1">
-                      {user.name?.split(' ')[0] || user.firstName || t('nav.profile')}
-                    </div>
-                    <div className="text-sm text-white/80 font-medium">
-                      {user.email}
-                    </div>
-                  </div>
-                  
-                  {/* Status Indicator */}
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className="w-3 h-3 rounded-full animate-pulse"
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        boxShadow: '0 0 10px rgba(16,185,129,0.5)'
-                      }}
-                    ></div>
-                    <span className="text-xs text-white/70 font-medium">{t('nav.online')}</span>
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  <Link
-                    to="/profile"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="relative flex items-center w-full px-5 py-4 text-white/90 hover:text-white rounded-2xl transition-all duration-300 space-x-3 touch-manipulation group overflow-hidden"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                      backdropFilter: 'blur(15px)',
-                      WebkitBackdropFilter: 'blur(15px)',
-                      border: '1px solid rgba(255,255,255,0.1)'
-                    }}
-                  >
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(24,181,216,0.15) 0%, rgba(8,145,178,0.08) 100%)'
-                      }}
-                    ></div>
-                    <User size={22} className="flex-shrink-0 relative z-10" />
-                    <span className="text-base font-semibold relative z-10">{t('nav.profile')}</span>
-                    <ChevronLeft size={18} className="mr-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1 relative z-10" />
-                  </Link>
-                  
-                  <button 
-                    onClick={handleLogout}
-                    className="relative flex items-center w-full px-5 py-4 text-red-400 hover:text-red-300 rounded-2xl transition-all duration-300 space-x-3 touch-manipulation group overflow-hidden"
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                      backdropFilter: 'blur(15px)',
-                      WebkitBackdropFilter: 'blur(15px)',
-                      border: '1px solid rgba(255,255,255,0.1)'
-                    }}
-                  >
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl"
-                      style={{
-                        background: 'linear-gradient(135deg, rgba(239,68,68,0.15) 0%, rgba(220,38,38,0.08) 100%)'
-                      }}
-                    ></div>
-                    <LogOut size={22} className="flex-shrink-0 relative z-10" />
-                    <span className="text-base font-semibold relative z-10">{t('nav.logout')}</span>
-                    <ChevronLeft size={18} className="mr-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1 relative z-10" />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div 
-                className="relative p-6 border-b border-white/15"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)'
-                }}
-              >
-                <button 
-                  onClick={openAuthModal}
-                  className="relative flex items-center justify-center w-full px-6 py-5 text-white rounded-2xl transition-all duration-300 touch-manipulation group overflow-hidden"
-                  style={{
-                    background: 'linear-gradient(135deg, #18b5d8 0%, #0891b2 100%)',
-                    boxShadow: '0 8px 32px rgba(24,181,216,0.3), inset 0 1px 1px rgba(255,255,255,0.2)'
-                  }}
+                  <img src={logo} alt="Logo" className="h-8 w-auto" />
+                </Link>
+                <button
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-white/90 hover:text-white p-1.5 rounded-md hover:bg-white/10 transition-colors"
+                  aria-label="إغلاق القائمة"
                 >
-                  {/* Animated Background */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl"
-                    style={{
-                      background: 'linear-gradient(135deg, #0891b2 0%, #18b5d8 100%)'
-                    }}
-                  ></div>
-                  
-                  {/* Shimmer Effect */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500"
-                    style={{
-                      background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%)',
-                      transform: 'translateX(-100%)',
-                      animation: 'shimmer 1.5s ease-in-out infinite'
-                    }}
-                  ></div>
-                  
-                  <User size={24} className="flex-shrink-0 ml-3 relative z-10" />
-                  <span className="font-bold text-lg relative z-10">{t('nav.login')}</span>
+                  <X size={20} />
                 </button>
               </div>
-            )}
 
-            {/* Search & Settings Section - Mobile */}
-            <div 
-              className="relative p-6 border-b border-white/15"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)'
-              }}
-            >
-              {/* Section Header */}
-              <div className="flex items-center mb-6">
-                <div 
-                  className="w-1 h-6 rounded-full mr-3"
-                  style={{
-                    background: 'linear-gradient(135deg, #18b5d8 0%, #0891b2 100%)',
-                    boxShadow: '0 0 10px rgba(24,181,216,0.5)'
-                  }}
-                ></div>
-                <h3 className="text-white/80 text-sm font-bold uppercase tracking-wider">{t('nav.search_and_settings')}</h3>
-              </div>
-
-              {/* Search Component */}
-              <div className="mb-4">
-                <LiveSearch />
-              </div>
-
-              {/* Language & Currency Selector */}
-              <div className="flex justify-center">
-                <LanguageCurrencySelector />
-              </div>
-            </div>
-
-            {/* Navigation Links Section - Enhanced Glassmorphism */}
-            <div 
-              className="relative p-6 flex-1"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
-                backdropFilter: 'blur(15px)',
-                WebkitBackdropFilter: 'blur(15px)'
-              }}
-            >
-              {/* Section Header */}
-              <div className="flex items-center mb-6">
-                <div 
-                  className="w-1 h-6 rounded-full mr-3"
-                  style={{
-                    background: 'linear-gradient(135deg, #18b5d8 0%, #0891b2 100%)',
-                    boxShadow: '0 0 10px rgba(24,181,216,0.5)'
-                  }}
-                ></div>
-                <h3 className="text-white/80 text-sm font-bold uppercase tracking-wider">{t('nav.pages')}</h3>
-              </div>
-              
-              {/* Navigation Links */}
-              <div className="space-y-3">
-                {[
-                  { name: t('nav.home'), href: '/', icon: Home, color: '#18b5d8' },
-                  { name: t('nav.products'), href: '/products', icon: Grid3X3, color: '#0891b2' },
-                  { name: t('nav.theme_malak'), href: '/theme/55', icon: Crown, color: '#f59e0b' },
-                  { name: t('nav.blog'), href: '/blog', icon: BookOpen, color: '#10b981' },
-                  { name: t('nav.categories'), href: '/categories', icon: Package, color: '#f97316' },
-                  { name: t('nav.contact'), href: '/contact', icon: Phone, color: '#ef4444' }
-                ].map((link, index) => (
-                  <Link
-                    key={link.name}
-                    to={link.href}
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`relative flex items-center px-5 py-4 text-white/90 hover:text-white rounded-2xl transition-all duration-300 space-x-3 group touch-manipulation overflow-hidden ${
-                      isActive(link.href) ? 'text-white' : ''
-                    }`}
-                    style={{
-                      background: isActive(link.href) 
-                        ? `linear-gradient(135deg, ${link.color}20 0%, ${link.color}10 100%)`
-                        : 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                      backdropFilter: 'blur(15px)',
-                      WebkitBackdropFilter: 'blur(15px)',
-                      border: isActive(link.href) 
-                        ? `1px solid ${link.color}40`
-                        : '1px solid rgba(255,255,255,0.1)',
-                      animationDelay: `${index * 100}ms`,
-                      animation: isMenuOpen ? 'slideInRight 0.5s ease-out forwards' : 'none'
-                    }}
-                  >
-                    {/* Hover Background */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-300 rounded-2xl"
-                      style={{
-                        background: `linear-gradient(135deg, ${link.color}15 0%, ${link.color}08 100%)`
-                      }}
-                    ></div>
-                    
-                    {/* Icon Container */}
-                    <div 
-                      className="relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110"
-                      style={{
-                        background: isActive(link.href) 
-                          ? `linear-gradient(135deg, ${link.color} 0%, ${link.color}cc 100%)`
-                          : 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                        boxShadow: isActive(link.href) 
-                          ? `0 4px 20px ${link.color}40`
-                          : '0 2px 10px rgba(0,0,0,0.1)'
-                      }}
-                    >
-                      <link.icon 
-                        size={20} 
-                        className="relative z-10"
-                        style={{ 
-                          color: isActive(link.href) ? '#ffffff' : link.color 
-                        }}
-                      />
-                      {isActive(link.href) && (
-                        <div 
-                          className="absolute inset-0 rounded-xl opacity-50"
-                          style={{
-                            background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3), transparent 70%)'
-                          }}
-                        ></div>
-                      )}
+              {/* 🔸 Body */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* User Section */}
+                {user ? (
+                  <div className="bg-[#592a26]/5 p-3 rounded-lg border border-[#592a26]/20">
+                    <div className="flex items-center space-x-2 rtl:space-x-reverse mb-2">
+                      <div className="w-8 h-8 rounded-full bg-[#592a26] flex items-center justify-center text-white text-xs font-bold">
+                        {getInitials(user.name || user.firstName || '')}
+                      </div>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {user.name?.split(' ')[0] || user.firstName}
+                      </span>
                     </div>
-                    
-                    {/* Text */}
-                    <span className="font-semibold text-base relative z-10 flex-1">{link.name}</span>
-                    
-                    {/* Arrow */}
-                    <ChevronLeft 
-                      size={18} 
-                      className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1 relative z-10"
-                      style={{ color: link.color }}
-                    />
-                    
-                    {/* Active Indicator */}
-                    {isActive(link.href) && (
-                      <div 
-                        className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 rounded-r-full"
-                        style={{
-                          background: `linear-gradient(135deg, ${link.color} 0%, ${link.color}cc 100%)`,
-                          boxShadow: `0 0 15px ${link.color}60`
-                        }}
-                      ></div>
-                    )}
-                    
-                    {/* Shimmer Effect on Hover */}
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 rounded-2xl"
-                      style={{
-                        background: 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)',
-                        transform: 'translateX(-100%)',
-                        animation: 'shimmer 2s ease-in-out infinite'
-                      }}
-                    ></div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+                    <div className="flex flex-col space-y-2">
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="text-sm text-[#592a26] hover:text-[#592a26]/80 font-medium py-1.5 px-2 rounded flex items-center"
+                      >
+                        <User size={14} className="ml-1 rtl:mr-1" />
+                        {t('nav.profile')}
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="text-sm text-red-600 hover:text-red-700 font-medium py-1.5 px-2 rounded flex items-center"
+                      >
+                        <LogOut size={14} className="ml-1 rtl:mr-1" />
+                        {t('nav.logout')}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={openAuthModal}
+                    className="w-full bg-[#592a26] hover:bg-[#592a26]/90 text-white py-2.5 rounded-lg font-medium transition-colors"
+                  >
+                    {t('nav.login')}
+                  </button>
+                )}
 
-            {/* Action Buttons Section */}
-            {/* Wishlist Section - Simple Design */}
-            <div className="relative p-6 border-t border-white/10">
-              <Link
-                to="/wishlist"
-                onClick={() => setIsMenuOpen(false)}
-                className="flex items-center px-5 py-4 text-white/90 hover:text-white rounded-2xl transition-all duration-300 space-x-3 group touch-manipulation"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-                  backdropFilter: 'blur(15px)',
-                  WebkitBackdropFilter: 'blur(15px)',
-                  border: '1px solid rgba(255,255,255,0.1)'
-                }}
-              >
-                <div className="relative">
-                  <Heart size={22} className="flex-shrink-0" />
-                  {wishlistItemsCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-pink-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center text-xs font-bold">
-                      {wishlistItemsCount}
-                    </span>
-                  )}
+                {/* Search & Lang */}
+                <div className="space-y-3">
+                  <div className="border-t border-gray-200 pt-3">
+                    <LiveSearch triggerVariant="icon" />
+                  </div>
+                  <div className="flex justify-center">
+                    <LanguageCurrencySelector />
+                  </div>
                 </div>
-                <span className="text-base font-semibold">{t('nav.wishlist')}</span>
-                <ChevronLeft size={18} className="mr-auto opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1" />
-              </Link>
+
+                {/* 🔹 Navigation Links — بدون theme/blog/contact */}
+                <div className="space-y-2">
+                  {[
+                    { name: t('nav.home'), href: '/', icon: Home },
+                    { name: t('nav.products'), href: '/products', icon: Grid3X3 },
+                    { name: t('nav.categories'), href: '/categories', icon: Package },
+                  ].map((link) => (
+                    <Link
+                      key={link.href}
+                      to={link.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={`flex items-center px-3 py-2.5 rounded-lg text-gray-700 font-medium ${
+                        isActive(link.href)
+                          ? 'bg-[#592a26]/10 text-[#592a26]'
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <link.icon size={16} className="ml-2 rtl:mr-2 flex-shrink-0" />
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
+
+                {/* 🔸 Quick Actions */}
+                <div className="flex flex-col space-y-2 pt-2 border-t border-gray-100">
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-between px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-700 font-medium"
+                  >
+                    <span className="flex items-center">
+                      <Heart size={16} className="ml-2 rtl:mr-2" />
+                      {t('nav.wishlist')}
+                    </span>
+                    {wishlistItemsCount > 0 && (
+                      <span className="bg-[#592a26] text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                        {wishlistItemsCount}
+                      </span>
+                    )}
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       <AuthModal
         isOpen={isAuthModalOpen}

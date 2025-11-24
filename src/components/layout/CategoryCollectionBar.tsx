@@ -267,7 +267,7 @@ const CategoryCollectionBar: React.FC<Props> = ({ variant = 'default' }) => {
               <button
                 key={`col-${col._id}`}
                 onClick={() => handleCollectionClick(col)}
-              className="relative px-2 py-1 text-black/80 hover:text-black rounded-lg hover:bg-black/5 transition-all duration-300 text-[11px] sm:text-xs font-medium group"
+              className="hidden md:inline-flex relative px-2 py-1 text-black/80 hover:text-black rounded-lg hover:bg-black/5 transition-all duration-300 text-[11px] sm:text-xs font-medium group"
                 title={getLocalized(col, 'description') || ''}
               >
                 <span className="relative z-10">{getLocalized(col, 'name')}</span>
@@ -347,10 +347,10 @@ const CategoryCollectionBar: React.FC<Props> = ({ variant = 'default' }) => {
             </div>
 
             {/* Divider */}
-            <div className="h-6 w-px bg-white/10" />
+            <div className="h-6 w-px bg-white/10 hidden md:block" />
 
             {/* Collections Section */}
-            <div className="flex-1">
+            <div className="flex-1 hidden md:block">
               <div className="flex items-center gap-2 text-white/80 mb-1">
                 <FolderOpen className="w-4 h-4 text-[#0891b2]" />
                 <span className="text-sm font-semibold">{t('collections')}</span>
