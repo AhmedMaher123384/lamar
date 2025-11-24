@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1000,
+    "name": "العطور",
+    "name_en": "Perfumes",
+    "description": "عطور مختارة بروائح عربية وعالمية",
+    "categoryType": "regular",
+    "parentId": null,
+    "isActive": true,
+    "order": 1,
+    "image": "https://picsum.photos/seed/category-1000/200/200"
+  },
+  {
+    "id": 1100,
+    "name": "المسك",
+    "name_en": "Musk",
+    "description": "تشكيلة روائح المسك المنعشة",
+    "categoryType": "regular",
+    "parentId": null,
+    "isActive": true,
+    "order": 2,
+    "image": "https://picsum.photos/seed/category-1100/200/200"
+  },
+  {
+    "id": 1200,
+    "name": "البخور",
+    "name_en": "Incense",
+    "description": "أنواع العود الفاخرة",
+    "categoryType": "regular",
+    "parentId": null,
+    "isActive": true,
+    "order": 3,
+    "image": "https://picsum.photos/seed/category-1200/200/200"
+  },
+  {
+    "id": 1300,
+    "name": "المعطرات",
+    "name_en": "Air Fresheners",
+    "description": "معطرات متنوعة للأجواء",
+    "categoryType": "regular",
+    "parentId": null,
+    "isActive": true,
+    "order": 4,
+    "image": "https://picsum.photos/seed/category-1300/200/200"
+  },
+  {
+    "id": 1400,
+    "name": "فواحات مكتبية",
+    "name_en": "Office Diffusers",
+    "description": "فواحات عملية للمكاتب",
+    "categoryType": "regular",
+    "parentId": null,
+    "isActive": true,
+    "order": 5,
+    "image": "https://picsum.photos/seed/category-1400/200/200"
+  }
+]

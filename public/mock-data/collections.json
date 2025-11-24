@@ -1,0 +1,39 @@
+[
+  {
+    "id": 5001,
+    "name": { "ar": "مجموعة آخر العروض", "en": "Last Offers Collection" },
+    "description_ar": "تشكيلة مختارة من العطور والمسكات والبخور والمعطرات والفواحات بخصومات.",
+    "description_en": "Curated offers across perfumes, musk, incense, air fresheners, and diffusers.",
+    "type": "manual",
+    "isActive": true,
+    "image": "/images/collections/last-offers.jpg",
+    "products": [
+      20001,
+      20004,
+      21001,
+      21003,
+      22001,
+      22004,
+      23001,
+      23004,
+      24001,
+      24004
+    ]
+  },
+  {
+    "id": 5002,
+    "name": { "ar": "مجموعة الجمعة البيضاء", "en": "White Friday Collection" },
+    "description_ar": "أفضل عروض الجمعة البيضاء من تشكيلتنا الجديدة.",
+    "description_en": "Top White Friday deals from our new lineup.",
+    "type": "manual",
+    "isActive": true,
+    "image": "/images/collections/white-friday.jpg",
+    "products": [
+      20007,
+      21002,
+      22005,
+      23005,
+      24005
+    ]
+  }
+]
