@@ -128,7 +128,6 @@ const GlobalFooter: React.FC = () => {
 
           {/* --- حقوق النشر — سطر واحد، صغير --- */}
           <div className="border-t border-[#592a26]/60 mt-4 pt-3 text-center text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} {t('footer.company_name', { defaultValue: 'AfterAds' })}.
             {t('footer.copyright_short', { defaultValue: 'جميع الحقوق محفوظة -  تم التطوير بواسطة Ufuq-Digital.' })}
           </div>
         </div>

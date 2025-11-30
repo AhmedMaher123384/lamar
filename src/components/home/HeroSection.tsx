@@ -8,7 +8,6 @@ const HeroSection: React.FC = () => {
 
   return (
     <section className="relative w-full overflow-hidden">
-      {/* Banner في أعلى الهيرو سيكشن */}
       
       {/* صورة الخلفية بعرض كامل الصفحة وارتفاع تلقائي */}
       <img 

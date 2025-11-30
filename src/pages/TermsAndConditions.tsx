@@ -357,22 +357,7 @@ const TermsAndConditions: React.FC = () => {
               </h2>
               <div className="bg-[#592a26]/5 border border-[#592a26]/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-scaleIn mobile-padding ultra-mobile-padding">
                 <p className="text-[#1a1a1a] mb-3 sm:mb-4 text-sm sm:text-base leading-relaxed">{t('terms_and_conditions.contact.description')}</p>
-                <div className="space-y-2 sm:space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 hover:scale-[1.02] transition-transform duration-300 p-2 rounded-lg hover:bg-[#592a26]/10">
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-[#592a26] flex-shrink-0" />
-                      <span className="text-[#1a1a1a] text-sm sm:text-base">{t('terms_and_conditions.contact.email_label')}</span>
-                    </div>
-                    <span className="font-bold text-[#592a26] text-sm sm:text-base break-all">info@afterads.com</span>
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 hover:scale-[1.02] transition-transform duration-300 p-2 rounded-lg hover:bg-[#592a26]/10">
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-[#592a26] flex-shrink-0" />
-                      <span className="text-[#1a1a1a] text-sm sm:text-base">{t('terms_and_conditions.contact.phone_label')}</span>
-                    </div>
-                    <span className="font-bold text-[#592a26] text-sm sm:text-base">01069006131</span>
-                  </div>
-                </div>
+                
               </div>
             </div>
 

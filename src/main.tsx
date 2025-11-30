@@ -238,7 +238,7 @@ window.__appRoot.render(
             <ScrollToTop />
             <LayoutWrapper />
           </CurrencyProvider>
-        </LoadingProvider>
+        </LoadingProvider> 
 
         <ToastContainer 
         position="top-center"

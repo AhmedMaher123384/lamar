@@ -11,37 +11,37 @@
   "dir": "rtl",
   "icons": [
     {
-      "src": "/favi.ico",
+      "src": "/favicon.ico",
       "sizes": "48x48",
       "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/favi.ico",
+      "src": "/favicon.ico",
       "sizes": "72x72",
       "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/favi.ico",
+      "src": "/favicon.ico",
       "sizes": "96x96",
       "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/favi.ico",
+      "src": "/favicon.ico",
       "sizes": "144x144",
       "type": "image/x-icon",
       "purpose": "any"
     },
     {
-      "src": "/favi.ico",
+      "src": "/favicon.ico",
       "sizes": "192x192",
       "type": "image/x-icon",
       "purpose": "any maskable"
     },
     {
-      "src": "/favi.ico",
+      "src": "/favicon.ico",
       "sizes": "512x512",
       "type": "image/x-icon",
       "purpose": "any maskable"
