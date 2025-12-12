@@ -393,7 +393,7 @@ function Navbar() {
         <div className="px-0">
           <div className="relative w-full transition-all duration-300 ease-out bg-[#592a26] text-white border-b border-[#592a26] shadow-md">
             <div className="flex lg:grid lg:grid-cols-3 items-center justify-between h-16 sm:h-20 lg:h-24 px-4 sm:px-6">
-              {/* Mobile Menu Button & Cart */}
+              {/* Mobile Menu Button, Cart & Search */}
               <div className="lg:hidden flex items-center space-x-3">
                 <button
                   ref={menuButtonRef}
@@ -429,6 +429,10 @@ function Navbar() {
                       />
                     </div>
                   )}
+                </div>
+                {/* Mobile Search Trigger */}
+                <div className="relative">
+                  <LiveSearch triggerVariant="icon" />
                 </div>
               </div>
 
@@ -564,7 +568,7 @@ function Navbar() {
             <div className="h-full flex flex-col">
               {/* 🔷 Header: Glassmorphism with subtle gradient */}
               <div className="px-5 py-4 flex items-center justify-between relative">
-                <div className="absolute inset-0 bg-white/60 backdrop-blur-xl rounded-[20px] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-amber-200/50 rounded-b-none"></div>
+                <div className="absolute inset-0 bg-white/20 backdrop-blur-xl rounded-[20px] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-amber-200/50 rounded-b-none"></div>
                 <Link
                   to="/"
                   onClick={() => setIsMenuOpen(false)}
@@ -629,9 +633,7 @@ function Navbar() {
 
                 {/* 🔍 Search & Lang */}
                 <div className="space-y-4">
-                  <div className="rounded-2xl overflow-hidden border border-amber-200/50 bg-white/70 backdrop-blur-lg shadow-[0_4px_16px_-8px_rgba(0,0,0,0.04)]">
-                    <LiveSearch triggerVariant="icon" />
-                  </div>
+                 
                   <div className="flex justify-center">
                     <div className="bg-white/80 backdrop-blur rounded-xl p-1 shadow-[0_4px_12px_-6px_rgba(0,0,0,0.05)]">
                       <LanguageCurrencySelector variant="mobileMaroon" />
@@ -674,7 +676,7 @@ function Navbar() {
 
                 {/* 📚 Categories List — الفعلية بدل رابط الصفحة */}
                 <div className="space-y-2 pt-3 border-t border-[#592a26]/20">
-                  <div className="text-sm font-semibold text-[#1a1a1a]">{t('categories') || 'Categories'}</div>
+                  <div className="text-sm font-semibold text-[#1a1a1a]">{t('categories.title')}</div>
                   <div className="grid grid-cols-2 gap-2">
                     {categories.map((cat) => (
                       <Link

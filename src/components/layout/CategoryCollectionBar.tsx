@@ -108,7 +108,6 @@ const CategoryCollectionBar: React.FC<Props> = ({ variant = 'default' }) => {
     if (typeof langValue === 'string' && langValue.trim()) return langValue;
     if (typeof otherValue === 'string' && otherValue.trim()) return otherValue;
 
-    // Fallback: field may be a string or an object like { ar, en }
     const base = item?.[field];
     if (typeof base === 'string' && base.trim()) return base;
     if (base && typeof base === 'object') {
@@ -242,7 +241,7 @@ const CategoryCollectionBar: React.FC<Props> = ({ variant = 'default' }) => {
                     >
                       <div className="px-2 py-1 text-black/70 text-[11px] flex items-center gap-2">
                         <ListTree className="w-3.5 h-3.5" />
-                        <span>{t('subcategories') || 'Subcategories'}</span>
+                        <span>{t('categories.subcategories')}</span>
                       </div>
                       <div className="divide-y divide-black/10">
                         {subByParent[cat.id].map((sub) => (
@@ -293,7 +292,7 @@ const CategoryCollectionBar: React.FC<Props> = ({ variant = 'default' }) => {
             <div className="flex-1">
               <div className="flex items-center gap-2 text-white/80 mb-1">
                 <Layers className="w-4 h-4 text-[#18b5d8]" />
-                <span className="text-sm font-semibold">{t('categories')}</span>
+                <span className="text-sm font-semibold">{t('categories.title')}</span>
               </div>
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
                 {categories.map((cat) => {
@@ -325,7 +324,7 @@ const CategoryCollectionBar: React.FC<Props> = ({ variant = 'default' }) => {
                         >
                           <div className="flex items-center gap-2 px-2 py-1 text-white/70 text-xs">
                             <ListTree className="w-3.5 h-3.5" />
-                            <span>{t('subcategories') || 'Subcategories'}</span>
+                            <span>{t('categories.subcategories')}</span>
                           </div>
                           <div className="divide-y divide-white/5">
                             {subByParent[cat.id].map((sub) => (
