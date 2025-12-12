@@ -230,7 +230,7 @@ const CollectionPage: React.FC = () => {
         {sortedProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
             {sortedProducts.map((product) => (
-              <div key={product.id} className="w-full">
+              <div key={product.id} className="w-full flex justify-center sm:block">
                 <ProductCard product={product} viewMode="grid" />
               </div>
             ))}

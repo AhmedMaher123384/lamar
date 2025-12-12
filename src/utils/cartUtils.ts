@@ -114,7 +114,7 @@ export const addToCartUnified = async (
           console.error('❌ [CartUtils] Failed to sync localStorage with server cart:', syncError);
         }
         
-        smartToast.frontend.success(`تم إضافة ${productName} إلى السلة بنجاح! 🛒`);
+        // تمت إزالة توست النجاح بناءً على طلب المستخدم؛ نحتفظ بإشعار واجهة مخصص فقط
 
         // إطلاق حدث لتحديث عداد السلة
         window.dispatchEvent(new CustomEvent('cartUpdated'));

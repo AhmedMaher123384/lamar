@@ -222,7 +222,7 @@ const CategoryPage: React.FC = () => {
             }
           >
             {sortedProducts.map((product) => (
-              <div key={product.id} className="w-full">
+              <div key={product.id} className="w-full flex justify-center sm:block">
                 <ProductCard product={product} viewMode={viewMode} />
               </div>
             ))}

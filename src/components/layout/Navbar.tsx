@@ -23,6 +23,8 @@ interface Category {
   name: string;
   description: string;
   image: string;
+  name_ar?: string;
+  name_en?: string;
 }
 
 function Navbar() {
@@ -51,7 +53,7 @@ function Navbar() {
   const [isCartHovered, setIsCartHovered] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const cartDropdownRef = useRef<HTMLDivElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null); // ⭐ لحساب مركز الزر
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -63,6 +65,15 @@ function Navbar() {
       .map(word => word.charAt(0))
       .join('')
       .toUpperCase();
+  };
+
+  // اختر اسم التصنيف بناءً على اللغة الحالية مع سلوك fallback أنيق
+  const getCategoryName = (category: Category) => {
+    const lang = i18n.language || 'en';
+    if (lang.startsWith('ar')) {
+      return category.name_ar || category.name_en || category.name || '';
+    }
+    return category.name_en || category.name_ar || category.name || '';
   };
 
   // Control navbar visibility based on scroll
@@ -115,8 +126,6 @@ function Navbar() {
     }
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isUserMenuOpen, isCartDropdownOpen, isCartHovered]);
-
-  // 👇 تمت إزالة useEffect الخاص بـ overlay + body overflow (لأننا نستخدم circular reveal بدون overlay داكن)
 
   useEffect(() => {
     if (isMenuOpen) setShowNavbar(false);
@@ -355,7 +364,6 @@ function Navbar() {
     setIsMenuOpen(false);
   };
 
-  // 🧱 Circular Reveal: حساب موقع الزر لمركز التوسع
   const [circlePosition, setCirclePosition] = useState({ x: 0, y: 0, radius: 0 });
 
   const openMenuWithCircularReveal = () => {
@@ -366,12 +374,12 @@ function Navbar() {
       const radius = Math.max(
         window.innerWidth,
         window.innerHeight
-      ) * 1.2; // دائرة كبيرة كفاية لتغطي الشاشة
+      ) * 1.2;
 
       setCirclePosition({ x, y, radius });
       setTimeout(() => setIsMenuOpen(true), 10);
     } else {
-      setIsMenuOpen(true); // fallback
+      setIsMenuOpen(true);
     }
   };
 
@@ -398,7 +406,7 @@ function Navbar() {
                   </div>
                   <div className="absolute inset-0 bg-white/5 scale-0 group-active:scale-100 transition-transform duration-150 rounded-xl"></div>
                 </button>
-                <div className="relative">
+                <div className="relative" ref={cartDropdownRef}>
                   <button
                     onClick={() => setIsCartDropdownOpen(!isCartDropdownOpen)}
                     className="relative text-white p-2 sm:p-2.5 rounded-xl hover:bg-white/10 transition-all duration-300 backdrop-blur-sm touch-manipulation group"
@@ -413,7 +421,7 @@ function Navbar() {
                     <div className="absolute inset-0 bg-white/5 scale-0 group-active:scale-100 transition-transform duration-150 rounded-xl"></div>
                   </button>
                   {isCartDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 z-50">
+                    <div className="fixed left-1/2 -translate-x-1/2 top-16 sm:top-20 z-50">
                       <CartDropdown
                         isOpen={isCartDropdownOpen}
                         onClose={() => setIsCartDropdownOpen(false)}
@@ -441,7 +449,7 @@ function Navbar() {
               {/* Action Buttons (right) */}
               <div className="hidden lg:flex items-center space-x-2 lg:col-start-3 lg:justify-self-end">
                 <div className="transform scale-75 sm:scale-90 origin-right">
-                  <LanguageCurrencySelector />
+                  <LanguageCurrencySelector variant="desktopMaroon" />
                 </div>
 
                 {/* Cart Button */}
@@ -458,7 +466,7 @@ function Navbar() {
                     )}
                     <div className="absolute inset-0 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
-                  <div className="absolute top-full left-0 mt-2 z-50 translate-x-4">
+                  <div className={`absolute top-full ${isRTL ? 'left-0' : 'right-0'} mt-2 z-50`}>
                     <CartDropdown
                       isOpen={isCartDropdownOpen}
                       onClose={() => setIsCartDropdownOpen(false)}
@@ -540,130 +548,174 @@ function Navbar() {
         </div>
       </nav>
 
-      {/* 🧱 CIRCULAR REVEAL MOBILE MENU */}
+      {/* 🧱 CIRCULAR REVEAL MOBILE MENU — FULLY REDESIGNED (ELEGANT, PROFESSIONAL, BLACK TEXT) */}
       {isMenuOpen && (
         <div
           className="fixed inset-0 z-[60] pointer-events-none"
           onClick={() => setIsMenuOpen(false)}
         >
-          {/* Circular mask */}
           <div
-            className="absolute inset-0 bg-white pointer-events-auto transition-all duration-500 ease-out"
+            className="absolute inset-0 bg-amber-50 pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.22,0.61,0.36,1)]"
             style={{
               clipPath: `circle(${circlePosition.radius}px at ${circlePosition.x}px ${circlePosition.y}px)`,
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Panel content */}
             <div className="h-full flex flex-col">
-              {/* 🔷 Header: لون #592a26 خلفية + لوجو أبيض */}
-              <div className="bg-[#592a26] px-4 py-3 flex items-center justify-between">
+              {/* 🔷 Header: Glassmorphism with subtle gradient */}
+              <div className="px-5 py-4 flex items-center justify-between relative">
+                <div className="absolute inset-0 bg-white/60 backdrop-blur-xl rounded-[20px] shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-amber-200/50 rounded-b-none"></div>
                 <Link
                   to="/"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center"
+                  className="relative z-10 flex items-center group"
                 >
-                  <img src={logo} alt="Logo" className="h-8 w-auto" />
+                  <img 
+                    src={logo} 
+                    alt="Logo" 
+                    className="h-8 w-auto drop-shadow-[0_2px_6px_rgba(0,0,0,0.08)] transition-transform duration-300 group-hover:scale-105"
+                  />
                 </Link>
                 <button
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-white/90 hover:text-white p-1.5 rounded-md hover:bg-white/10 transition-colors"
+                  className="relative z-10 w-11 h-11 flex items-center justify-center rounded-full bg-[#592a26]/5 text-[#592a26] hover:bg-[#592a26]/10 active:scale-95 transition-all duration-300 shadow-[0_4px_12px_-6px_rgba(90,42,38,0.2)] hover:shadow-[0_6px_16px_-4px_rgba(90,42,38,0.25)] focus:outline-none focus:ring-2 focus:ring-[#592a26]/30"
                   aria-label="إغلاق القائمة"
                 >
-                  <X size={20} />
+                  <X size={22} className="transition-transform duration-300 hover:rotate-90" />
                 </button>
               </div>
 
-              {/* 🔸 Body */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* User Section */}
+              {/* 🔸 Body — refined, black text, elegant spacing */}
+              <div className="flex-1 overflow-y-auto p-5 pb-8 space-y-6">
+                {/* 👤 User Section */}
                 {user ? (
-                  <div className="bg-[#592a26]/5 p-3 rounded-lg border border-[#592a26]/20">
-                    <div className="flex items-center space-x-2 rtl:space-x-reverse mb-2">
-                      <div className="w-8 h-8 rounded-full bg-[#592a26] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.06)] border border-amber-200/40 hover:shadow-[0_12px_40px_-10px_rgba(0,0,0,0.08)] transition-shadow duration-500">
+                    <div className="flex items-center space-x-3 rtl:space-x-reverse mb-4">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#592a26] to-[#3d1d1a] flex items-center justify-center text-white text-sm font-bold shadow-md">
                         {getInitials(user.name || user.firstName || '')}
                       </div>
-                      <span className="text-sm font-semibold text-gray-800">
-                        {user.name?.split(' ')[0] || user.firstName}
-                      </span>
+                      <div>
+                        <p className="text-[#1a1a1a] font-semibold text-base">مرحبًا،</p>
+                        <p className="text-[#592a26] font-bold text-lg">{user.name?.split(' ')[0] || user.firstName}</p>
+                      </div>
                     </div>
-                    <div className="flex flex-col space-y-2">
+                    <div className="space-y-2">
                       <Link
                         to="/profile"
                         onClick={() => setIsMenuOpen(false)}
-                        className="text-sm text-[#592a26] hover:text-[#592a26]/80 font-medium py-1.5 px-2 rounded flex items-center"
+                        className="flex items-center px-3 py-2.5 rounded-xl text-[#1a1a1a] font-medium hover:bg-amber-100/70 active:scale-[0.98] transition-all duration-250 ease-out group"
                       >
-                        <User size={14} className="ml-1 rtl:mr-1" />
-                        {t('nav.profile')}
+                        <User size={16} className="ml-2 rtl:mr-2 text-[#592a26] group-hover:scale-110 transition-transform" />
+                        <span>{t('nav.profile')}</span>
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="text-sm text-red-600 hover:text-red-700 font-medium py-1.5 px-2 rounded flex items-center"
+                        className="flex items-center w-full px-3 py-2.5 rounded-xl text-red-600 font-medium hover:bg-red-50/70 active:scale-[0.98] transition-all duration-250 ease-out group"
                       >
-                        <LogOut size={14} className="ml-1 rtl:mr-1" />
-                        {t('nav.logout')}
+                        <LogOut size={16} className="ml-2 rtl:mr-2 group-hover:scale-110 transition-transform" />
+                        <span>{t('nav.logout')}</span>
                       </button>
                     </div>
                   </div>
                 ) : (
                   <button
                     onClick={openAuthModal}
-                    className="w-full bg-[#592a26] hover:bg-[#592a26]/90 text-white py-2.5 rounded-lg font-medium transition-colors"
+                    className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#592a26] to-[#3d1d1a] py-4 font-semibold text-white shadow-[0_6px_20px_-8px_rgba(90,42,38,0.3)] hover:shadow-[0_8px_24px_-6px_rgba(90,42,38,0.4)] active:scale-[0.98] transition-all duration-300 group"
                   >
-                    {t('nav.login')}
+                    <span className="relative z-10">{t('nav.login')}</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-200/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </button>
                 )}
 
-                {/* Search & Lang */}
-                <div className="space-y-3">
-                  <div className="border-t border-gray-200 pt-3">
+                {/* 🔍 Search & Lang */}
+                <div className="space-y-4">
+                  <div className="rounded-2xl overflow-hidden border border-amber-200/50 bg-white/70 backdrop-blur-lg shadow-[0_4px_16px_-8px_rgba(0,0,0,0.04)]">
                     <LiveSearch triggerVariant="icon" />
                   </div>
                   <div className="flex justify-center">
-                    <LanguageCurrencySelector />
+                    <div className="bg-white/80 backdrop-blur rounded-xl p-1 shadow-[0_4px_12px_-6px_rgba(0,0,0,0.05)]">
+                      <LanguageCurrencySelector variant="mobileMaroon" />
+                    </div>
                   </div>
                 </div>
 
-                {/* 🔹 Navigation Links — بدون theme/blog/contact */}
+                {/* 🔗 Navigation Links */}
                 <div className="space-y-2">
                   {[
                     { name: t('nav.home'), href: '/', icon: Home },
                     { name: t('nav.products'), href: '/products', icon: Grid3X3 },
-                    { name: t('nav.categories'), href: '/categories', icon: Package },
                   ].map((link) => (
                     <Link
                       key={link.href}
                       to={link.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className={`flex items-center px-3 py-2.5 rounded-lg text-gray-700 font-medium ${
+                      className={`flex items-center px-4 py-3.5 rounded-2xl font-medium transition-all duration-300 group ${
                         isActive(link.href)
-                          ? 'bg-[#592a26]/10 text-[#592a26]'
-                          : 'hover:bg-gray-100'
+                          ? 'bg-[#592a26]/10 text-[#592a26] shadow-[inset_0_0_0_1px_rgba(90,42,38,0.15)]'
+                          : 'text-[#1a1a1a] hover:bg-[#592a26]/10 hover:shadow-[0_4px_12px_-8px_rgba(0,0,0,0.08)]'
                       }`}
                     >
-                      <link.icon size={16} className="ml-2 rtl:mr-2 flex-shrink-0" />
-                      {link.name}
+                      <div className={`p-1.5 rounded-lg ${
+                        isActive(link.href) 
+                          ? 'bg-[#592a26]/20' 
+                          : 'bg-[#592a26]/10 group-hover:bg-[#592a26]/20'
+                      } transition-colors duration-300`}>
+                        <link.icon 
+                          size={18} 
+                          className={`${
+                            isActive(link.href) ? 'text-[#592a26]' : 'text-[#592a26]/80 group-hover:text-[#592a26]'
+                          } transition-colors duration-300`} 
+                        />
+                      </div>
+                      <span className="mr-3 rtl:ml-3 text-base font-medium">{link.name}</span>
                     </Link>
                   ))}
                 </div>
 
-                {/* 🔸 Quick Actions */}
-                <div className="flex flex-col space-y-2 pt-2 border-t border-gray-100">
+                {/* 📚 Categories List — الفعلية بدل رابط الصفحة */}
+                <div className="space-y-2 pt-3 border-t border-[#592a26]/20">
+                  <div className="text-sm font-semibold text-[#1a1a1a]">{t('categories') || 'Categories'}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        to={`/category/${createCategorySlug(cat.id, getCategoryName(cat))}`}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="px-3 py-2.5 rounded-xl bg-[#592a26]/10 hover:bg-[#592a26]/20 text-[#1a1a1a] font-medium border border-[#592a26]/30 transition-colors"
+                      >
+                        {getCategoryName(cat)}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ❤️ Wishlist */}
+                <div className="pt-3 border-t border-amber-200/50">
                   <Link
                     to="/wishlist"
                     onClick={() => setIsMenuOpen(false)}
-                    className="flex items-center justify-between px-3 py-2.5 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-700 font-medium"
+                    className="flex items-center justify-between px-4 py-3.5 bg-white/70 backdrop-blur rounded-2xl text-[#1a1a1a] font-medium hover:bg-amber-100/80 active:scale-[0.99] transition-all duration-300 shadow-[0_4px_16px_-10px_rgba(0,0,0,0.05)] group"
                   >
                     <span className="flex items-center">
-                      <Heart size={16} className="ml-2 rtl:mr-2" />
+                      <Heart 
+                        size={18} 
+                        className="ml-3 rtl:mr-3 text-[#592a26]/70 group-hover:text-[#592a26] transition-colors" 
+                      />
                       {t('nav.wishlist')}
                     </span>
                     {wishlistItemsCount > 0 && (
-                      <span className="bg-[#592a26] text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+                      <span className="flex items-center justify-center bg-gradient-to-r from-[#592a26] to-[#3d1d1a] text-white text-xs font-bold px-3 py-1.5 rounded-full min-w-[28px] h-6 shadow-[0_2px_6px_rgba(90,42,38,0.3)]">
                         {wishlistItemsCount}
                       </span>
                     )}
                   </Link>
+                </div>
+
+                {/* 🎁 Discount Banner */}
+                <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-amber-100/60 border border-amber-200/40 text-center">
+                  <p className="text-[#592a26] font-semibold text-sm leading-relaxed">
+                    <span className="inline-block animate-pulse">🎉</span> خصومات ٣٠٪ بمناسبة العيد الوطني الـ٩٥
+                  </p>
                 </div>
               </div>
             </div>

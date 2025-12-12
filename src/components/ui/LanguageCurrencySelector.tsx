@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useCurrency, Currency } from '../../contexts/CurrencyContext';
 import { ChevronDown, Check, Languages, DollarSign } from 'lucide-react';
 
-const LanguageCurrencySelector: React.FC = () => {
+interface LanguageCurrencySelectorProps {
+  variant?: 'default' | 'mobileMaroon' | 'desktopMaroon';
+}
+
+const LanguageCurrencySelector: React.FC<LanguageCurrencySelectorProps> = ({ variant = 'default' }) => {
   const { t, i18n } = useTranslation();
   const { currentCurrency, setCurrency, currencies, getCurrentCurrencySymbol } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
@@ -47,42 +51,68 @@ const LanguageCurrencySelector: React.FC = () => {
       {/* Compact Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative text-white p-2 rounded-xl hover:bg-white/10 transition-all duration-300 group flex items-center gap-1.5"
+        className={`${
+          variant === 'mobileMaroon'
+            ? 'relative text-black p-2 rounded-xl border border-[#592a26]/30 bg-white hover:bg-[#592a26]/10 transition-all duration-300 group flex items-center gap-1.5'
+            : variant === 'desktopMaroon'
+              ? 'relative text-white p-2 rounded-xl border border-[#592a26]/30 hover:bg-[#592a26]/10 transition-all duration-300 group flex items-center gap-1.5'
+              : 'relative text-white p-2 rounded-xl hover:bg-white/10 transition-all duration-300 group flex items-center gap-1.5'
+        }`}
       >
         <div className="flex items-center gap-1.5">
           <span className="text-base">{currentLanguage.flag}</span>
-          <span className="text-xs font-medium text-white/90 hidden sm:block">{currentLanguage.code.toUpperCase()}</span>
-          <span className="text-white/40 hidden sm:block">•</span>
-          <span className="text-xs font-medium text-cyan-300">{getCurrentCurrencySymbol()}</span>
+          <span className={`${variant === 'mobileMaroon' ? 'text-black' : 'text-white/90'} text-xs font-medium hidden sm:block`}>{currentLanguage.code.toUpperCase()}</span>
+          <span className={`${variant === 'mobileMaroon' ? 'text-black/40' : 'text-white/40'} hidden sm:block`}>•</span>
+          <span className={`${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'text-[#592a26]' : 'text-cyan-300'} text-xs font-medium`}>{getCurrentCurrencySymbol()}</span>
         </div>
-        <ChevronDown className={`w-3.5 h-3.5 transition-all duration-300 text-white/70 ${isOpen ? 'rotate-180 text-cyan-300' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 transition-all duration-300 ${
+          variant === 'mobileMaroon'
+            ? `text-black ${isOpen ? 'rotate-180 text-[#592a26]' : ''}`
+            : variant === 'desktopMaroon'
+              ? `text-white/70 ${isOpen ? 'rotate-180 text-[#592a26]' : ''}`
+              : `text-white/70 ${isOpen ? 'rotate-180 text-cyan-300' : ''}`
+        }`} />
       </button>
 
       {/* Compact Dropdown */}
       {isOpen && (
-        <div className="absolute top-full mt-2 right-0 w-56 bg-white/10 backdrop-blur-2xl rounded-lg shadow-2xl border border-white/20 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-300">
+        <div className={`${
+          variant === 'mobileMaroon'
+            ? 'absolute top-full mt-2 right-0 w-56 bg-white rounded-lg shadow-2xl border border-[#592a26]/30 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-300'
+            : variant === 'desktopMaroon'
+              ? 'absolute top-full mt-2 right-0 w-56 bg-white rounded-lg shadow-2xl border border-[#592a26]/30 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-300'
+              : 'absolute top-full mt-2 right-0 w-56 bg-white/10 backdrop-blur-2xl rounded-lg shadow-2xl border border-white/20 overflow-hidden z-50 animate-in slide-in-from-top-2 duration-300'
+        }`}>
           {/* Simple Tabs */}
-          <div className="flex border-b border-white/15">
+          <div className={`flex ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'border-b border-[#592a26]/20' : 'border-b border-white/15'}`}>
             <button
               onClick={() => setActiveTab('language')}
               className={`flex-1 px-3 py-2 text-xs font-medium transition-all duration-300 ${
-                activeTab === 'language'
-                  ? 'bg-white/10 text-white border-b-2 border-cyan-400'
-                  : 'text-white/70 hover:text-white hover:bg-white/5'
+                variant === 'mobileMaroon'
+                  ? activeTab === 'language'
+                    ? 'bg-[#592a26]/10 text-black border-b-2 border-[#592a26]'
+                    : 'text-black/80 hover:text-black hover:bg-[#592a26]/5'
+                  : activeTab === 'language'
+                    ? 'bg-white/10 text-white border-b-2 border-cyan-400'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              <Languages className="w-3 h-3 mx-auto mb-1" />
+              <Languages className={`w-3 h-3 mx-auto mb-1 ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'text-[#592a26]' : ''}`} />
               {t('common.language', 'اللغة')}
             </button>
             <button
               onClick={() => setActiveTab('currency')}
               className={`flex-1 px-3 py-2 text-xs font-medium transition-all duration-300 ${
-                activeTab === 'currency'
-                  ? 'bg-white/10 text-white border-b-2 border-cyan-400'
-                  : 'text-white/70 hover:text-white hover:bg-white/5'
+                variant === 'mobileMaroon'
+                  ? activeTab === 'currency'
+                    ? 'bg-[#592a26]/10 text-black border-b-2 border-[#592a26]'
+                    : 'text-black/80 hover:text-black hover:bg-[#592a26]/5'
+                  : activeTab === 'currency'
+                    ? 'bg-white/10 text-white border-b-2 border-cyan-400'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              <DollarSign className="w-3 h-3 mx-auto mb-1" />
+              <DollarSign className={`w-3 h-3 mx-auto mb-1 ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'text-[#592a26]' : ''}`} />
               {t('common.currency', 'العملة')}
             </button>
           </div>
@@ -96,17 +126,21 @@ const LanguageCurrencySelector: React.FC = () => {
                     key={language.code}
                     onClick={() => changeLanguage(language.code)}
                     className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all duration-300 mb-1 ${
-                      currentLanguage.code === language.code
-                        ? 'bg-cyan-500/20 text-white'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      variant === 'mobileMaroon' || variant === 'desktopMaroon'
+                        ? currentLanguage.code === language.code
+                          ? 'bg-[#592a26]/10 text-black border border-[#592a26]/30'
+                          : 'text-black hover:bg-[#592a26]/10'
+                        : currentLanguage.code === language.code
+                          ? 'bg-cyan-500/20 text-white'
+                          : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
                     <span className="text-lg">{language.flag}</span>
                     <div className="flex-1">
-                      <div className="text-sm font-medium">{language.nativeName}</div>
+                      <div className={`text-sm font-medium ${variant === 'mobileMaroon' ? 'text-black' : ''}`}>{language.nativeName}</div>
                     </div>
                     {currentLanguage.code === language.code && (
-                      <Check className="w-3 h-3 text-cyan-400" />
+                      <Check className={`w-3 h-3 ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'text-[#592a26]' : 'text-cyan-400'}`} />
                     )}
                   </button>
                 ))}
@@ -120,19 +154,23 @@ const LanguageCurrencySelector: React.FC = () => {
                     key={currency.code}
                     onClick={() => changeCurrency(currency)}
                     className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-all duration-300 mb-1 ${
-                      currentCurrency.code === currency.code
-                        ? 'bg-cyan-500/20 text-white'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                      variant === 'mobileMaroon' || variant === 'desktopMaroon'
+                        ? currentCurrency.code === currency.code
+                          ? 'bg-[#592a26]/10 text-black border border-[#592a26]/30'
+                          : 'text-black hover:bg-[#592a26]/10'
+                        : currentCurrency.code === currency.code
+                          ? 'bg-cyan-500/20 text-white'
+                          : 'text-white/80 hover:text-white hover:bg-white/10'
                     }`}
                   >
-                    <div className="flex items-center justify-center w-6 h-6 rounded bg-white/10 text-sm font-bold text-cyan-300">
+                    <div className={`flex items-center justify-center w-6 h-6 rounded text-sm font-bold ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'bg-[#592a26]/10 text-[#592a26]' : 'bg-white/10 text-cyan-300'}`}>
                       {i18n.language === 'ar' ? currency.symbol : currency.symbolEn}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium">{i18n.language === 'ar' ? currency.nameAr : currency.name}</div>
+                      <div className={`text-sm font-medium ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'text-black' : ''}`}>{i18n.language === 'ar' ? currency.nameAr : currency.name}</div>
                     </div>
                     {currentCurrency.code === currency.code && (
-                      <Check className="w-3 h-3 text-cyan-400" />
+                      <Check className={`w-3 h-3 ${variant === 'mobileMaroon' || variant === 'desktopMaroon' ? 'text-[#592a26]' : 'text-cyan-400'}`} />
                     )}
                   </button>
                 ))}

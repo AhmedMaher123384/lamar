@@ -27,25 +27,30 @@ interface Product {
 
 interface ArabicCollectionListProps {
   arabicName: string;
-  limit?: number; // defaults to 6
+  limit?: number;
   className?: string;
 }
 
 const normalize = (s: any) => (typeof s === 'string' ? s : '').trim().toLowerCase();
 
-const ArabicCollectionList: React.FC<ArabicCollectionListProps> = ({ arabicName, limit = 5, className }) => {
-  const { i18n } = useTranslation();
-  const isArabic = i18n.language === 'ar';
+const ArabicCollectionList: React.FC<ArabicCollectionListProps> = ({
+  arabicName,
+  limit = 5,
+  className,
+}) => {
+  const { t, i18n } = useTranslation();
+  const isArabic = (i18n.language || 'en').startsWith('ar');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [collectionId, setCollectionId] = useState<string | number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [collectionNameAr, setCollectionNameAr] = useState<string>('');
+  const [collectionNameEn, setCollectionNameEn] = useState<string>('');
 
-  // Track viewport to adjust displayed items (mobile shows up to 4)
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)'); // Tailwind sm breakpoint is 640px
+    const mq = window.matchMedia('(max-width: 639px)');
     const update = () => setIsMobile(mq.matches);
     update();
     mq.addEventListener('change', update);
@@ -59,26 +64,33 @@ const ArabicCollectionList: React.FC<ArabicCollectionListProps> = ({ arabicName,
       setError(null);
       setProducts([]);
       setCollectionId(null);
+      setCollectionNameAr('');
+      setCollectionNameEn('');
       try {
-        // Fetch collections and find by Arabic/English name
         const res = await apiCall(`${API_ENDPOINTS.COLLECTIONS}?active=true`);
-        const list: any[] = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
+        const list: any[] = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
         const target = normalize(arabicName);
         const found = list.find((c: any) => {
-          const ar = typeof c?.name === 'string' ? c?.name : (c?.name?.ar || '');
-          const en = typeof c?.name === 'string' ? c?.name : (c?.name?.en || '');
+          const ar = typeof c?.name === 'string' ? c?.name : c?.name?.ar || '';
+          const en = typeof c?.name === 'string' ? c?.name : c?.name?.en || '';
           const nar = normalize(ar);
           const nen = normalize(en);
           return nar === target || nen === target || nar.includes(target) || nen.includes(target);
         });
 
         if (!found) {
-          throw new Error('لم يتم العثور على المجموعة المطلوبة');
+          throw new Error(t('لم يتم العثور على المجموعة المطلوبة'));
         }
 
         const colId = found._id || found.id;
-        // Fetch products in the collection
-        const prodRes = await apiCall(`${API_ENDPOINTS.COLLECTION_PRODUCTS(colId)}?page=1&limit=${limit}&sort=createdAt&order=desc`);
+        // أسماء المجموعة باللغتين مع fallback أنيق
+        const arName = typeof found?.name === 'string' ? found?.name : (found?.name?.ar ?? '');
+        const enName = typeof found?.name === 'string' ? found?.name : (found?.name?.en ?? '');
+        setCollectionNameAr(arName || enName || arabicName);
+        setCollectionNameEn(enName || arName || arabicName);
+        const prodRes = await apiCall(
+          `${API_ENDPOINTS.COLLECTION_PRODUCTS(colId)}?page=1&limit=${limit}&sort=createdAt&order=desc`
+        );
         const raw: any[] = Array.isArray(prodRes?.data)
           ? prodRes.data
           : Array.isArray(prodRes?.products)
@@ -88,7 +100,7 @@ const ArabicCollectionList: React.FC<ArabicCollectionListProps> = ({ arabicName,
               : [];
 
         const normalized: Product[] = raw.map((p: any, idx: number) => {
-          const idNum = typeof p?.id === 'number' ? p.id : (typeof p?.id === 'string' ? Number(p.id) : idx);
+          const idNum = typeof p?.id === 'number' ? p.id : typeof p?.id === 'string' ? Number(p.id) : idx;
           const name = p?.name ?? p?.name_en ?? p?.name_ar ?? '';
           const description = p?.description ?? p?.description_en ?? p?.description_ar ?? '';
           const mainImage = p?.mainImage ?? (Array.isArray(p?.images) ? p.images[0] : '');
@@ -102,13 +114,21 @@ const ArabicCollectionList: React.FC<ArabicCollectionListProps> = ({ arabicName,
             description,
             description_ar: p?.description_ar,
             description_en: p?.description_en,
-            price: typeof p?.price === 'number' ? p.price : (Number(p?.price) || 0),
-            originalPrice: typeof p?.originalPrice === 'number' ? p.originalPrice : (p?.originalPrice ? Number(p.originalPrice) : undefined),
+            price: typeof p?.price === 'number' ? p.price : Number(p?.price) || 0,
+            originalPrice: typeof p?.originalPrice === 'number'
+              ? p.originalPrice
+              : p?.originalPrice
+                ? Number(p.originalPrice)
+                : undefined,
             isAvailable: typeof p?.isAvailable === 'boolean' ? p.isAvailable : true,
-            categoryId: typeof p?.categoryId === 'number' ? p.categoryId : (p?.categoryId ?? null),
-            subcategoryId: typeof p?.subcategoryId === 'number' ? p.subcategoryId : (p?.subcategoryId ?? null),
+            categoryId: typeof p?.categoryId === 'number' ? p.categoryId : p?.categoryId ?? null,
+            subcategoryId: typeof p?.subcategoryId === 'number' ? p.subcategoryId : p?.subcategoryId ?? null,
             mainImage: finalMainImage,
-            detailedImages: Array.isArray(p?.detailedImages) ? p.detailedImages : (Array.isArray(p?.images) ? p.images : []),
+            detailedImages: Array.isArray(p?.detailedImages)
+              ? p.detailedImages
+              : Array.isArray(p?.images)
+                ? p.images
+                : [],
             createdAt: p?.createdAt,
             hasRequiredOptions: p?.hasRequiredOptions,
           } as Product;
@@ -119,47 +139,70 @@ const ArabicCollectionList: React.FC<ArabicCollectionListProps> = ({ arabicName,
           setCollectionId(colId);
         }
       } catch (err: any) {
-        if (!cancelled) setError(err?.message || 'حدث خطأ في جلب المنتجات');
+        if (!cancelled) setError(err?.message || t('حدث خطأ في جلب المنتجات'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
     load();
-    return () => { cancelled = true; };
-  }, [arabicName, i18n.language, limit]);
+    return () => {
+      cancelled = true;
+    };
+  }, [arabicName, i18n.language, limit, t]);
 
-  const ArrowIcon = isArabic ? ArrowLeft : ArrowRight;
   const displayLimit = isMobile ? Math.min(4, limit) : limit;
+  const displayCollectionName = isArabic
+    ? (collectionNameAr || collectionNameEn || arabicName)
+    : (collectionNameEn || collectionNameAr || arabicName);
 
   return (
     <div className={className || ''}>
       {loading ? (
-        <div className="text-center text-black/70">جارِ التحميل...</div>
+        <div className="text-center text-black/70 py-6">{t('جارِ التحميل...')}</div>
       ) : error ? (
-        <div className="text-center text-red-600">{error}</div>
+        <div className="text-center text-red-600 py-6">{error}</div>
       ) : products.length === 0 ? (
-        <div className="text-center text-black/60">لا توجد عناصر لعرضها حالياً</div>
+        <div className="text-center text-black/60 py-6">{t('لا توجد عناصر لعرضها حالياً')}</div>
       ) : (
         <div>
-          {/* زر عرض الكل أعلى القسم */}
+          {/* ✅ الزر الآن في الموضع الصحيح تلقائيًا — بدون شروط يدوية */}
           {collectionId && (
-            <div className={`mb-4 flex ${isArabic ? 'justify-end' : 'justify-start'}`}>
+            <div className="mb-4 flex items-center justify-end">
               <Link
                 to={`/collection/${collectionId}`}
-                className="inline-flex items-center gap-2 px-4 py-2 border border-[#592a26] text-[#592a26] rounded-md hover:bg-[#592a26] hover:text-white transition-colors"
+                className="group inline-flex items-center gap-2 px-4 py-2 border border-[#592a26] text-[#592a26] rounded-md font-medium transition-all duration-200 hover:bg-[#592a26] hover:text-white hover:shadow-sm active:scale-[0.98]"
+                aria-label={
+                  isArabic
+                    ? `${t('عرض جميع العناصر في المجموعة')} "${displayCollectionName}"`
+                    : `${t('View all items in collection')} "${displayCollectionName}"`
+                }
               >
-                <span>عرض الكل</span>
-                <ArrowIcon className="w-4 h-4" />
+                {isArabic ? (
+                  <>
+                    <span>{t('عرض الكل')}</span>
+                    <ArrowLeft
+                      className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <ArrowRight
+                      className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                      aria-hidden="true"
+                    />
+                    <span>{t('View All')}</span>
+                  </>
+                )}
               </Link>
             </div>
           )}
-          {/* عرض المنتجات جنب بعض بحجم أصغر */}
+
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {products.slice(0, displayLimit).map((product) => (
               <div key={product.id} className="flex justify-center">
                 <div className="transform scale-[0.9] sm:scale-[0.95]">
-                  {/* استخدام ProductCard الأصلي (grid view) */}
                   <ProductCard product={product} />
                 </div>
               </div>
