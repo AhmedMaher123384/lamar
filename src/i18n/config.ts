@@ -48,9 +48,15 @@ i18n
     },
     
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      // Prefer HTML tag language (set to 'ar' in index.html) over navigator
+      order: ['localStorage', 'htmlTag', 'navigator'],
       caches: ['localStorage'],
+      // Handle regional variants like 'en-US' by mapping to supported base codes
+      lookupLocalStorage: 'i18nextLng',
     },
+    supportedLngs: ['ar', 'en'],
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
     
     react: {
       useSuspense: false,
